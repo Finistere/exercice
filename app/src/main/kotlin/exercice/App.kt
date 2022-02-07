@@ -11,7 +11,7 @@ fun main() {
 }
 
 fun computeCost(n: Int, shortcuts: IntArray): IntArray {
-    val shortcutOrigin = mutableMapOf<Int, Int>().apply {
+    val earliestShortcut: Map<Int, Int> = mutableMapOf<Int, Int>().apply {
         shortcuts.forEachIndexed { origin, target ->
             // target is 1-indexed
             if (origin < target - 1) { // if shortcut doesn't link to itself
@@ -20,12 +20,10 @@ fun computeCost(n: Int, shortcuts: IntArray): IntArray {
         }
     }
     val costs = IntArray(n)
-    costs[0] = 0 // 1
+    costs[0] = 0 // origin
     for (i in 1 until n) {
-        costs[i] = Math.min(
-            costs[i - 1] + 1,
-            shortcutOrigin[i]?.let { origin -> costs[origin] + 1 } ?: Int.MAX_VALUE
-        )
+        // Either there was a shortcut to current node, or we're coming from the previous one.
+        costs[i] = costs[earliestShortcut.getOrDefault(i, i - 1)] + 1
     }
 
     return costs
