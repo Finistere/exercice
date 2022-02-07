@@ -3,6 +3,8 @@
  */
 package exercice
 
+import kotlin.math.min
+
 fun main() {
     val n = readLine()!!.toInt()
     val shortcuts = readLine()!!.split(' ').map { it.toInt() }
@@ -11,20 +13,39 @@ fun main() {
 }
 
 fun computeCost(n: Int, shortcuts: IntArray): IntArray {
-    val earliestShortcut: Map<Int, Int> = mutableMapOf<Int, Int>().apply {
-        shortcuts.forEachIndexed { origin, target ->
-            // target is 1-indexed
-            if (origin < target - 1) { // if shortcut doesn't link to itself
-                putIfAbsent(target - 1, origin)
-            }
-        }
-    }
-    val costs = IntArray(n)
-    costs[0] = 0 // origin
-    for (i in 1 until n) {
-        // Either there was a shortcut to current node, or we're coming from the previous one.
-        costs[i] = costs[earliestShortcut.getOrDefault(i, i - 1)] + 1
-    }
+    val cost = IntArray(n) { n + 1 }
+    var shortcutOrigin = 0
+    var shortcutTarget = shortcuts[shortcutOrigin] - 1 // target is now 0-indexed, from 1-indexed
+    cost[0] = 0
+    var i = 1
+    while (i < n) {
+        // handles case shortcutTarget == i and initial cases where 0 shortcuts to 0.
+        if (shortcutTarget <= i) {
+            cost[i] = min(
+                cost[i - 1] + 1,
+                cost[shortcutOrigin] + 1 + i - shortcutTarget
+            )
+            // find first origin of next target. At worst, i + 1.
+            shortcutOrigin += 1
+            while (shortcutOrigin < n && shortcuts[shortcutOrigin] - 1 <= i) shortcutOrigin += 1
+            if (shortcutOrigin == n) // implies i + 1 == n, so we're at the end
+                return cost
 
-    return costs
+            // find the origin minimizing the cost going downwards.
+            var j = shortcutOrigin + 1
+            while (j <= i) {
+                if ((shortcuts[j] - i + cost[j]) < (shortcuts[shortcutOrigin] - i + cost[shortcutOrigin])) shortcutOrigin =
+                    j
+                j++
+            }
+            shortcutTarget = shortcuts[shortcutOrigin] - 1 // 1-indexed -> 0-indexed
+        } else {
+            cost[i] = min(
+                cost[i - 1] + 1,
+                cost[shortcutOrigin] + 1 + shortcutTarget - i
+            )
+        }
+        i++
+    }
+    return cost
 }
