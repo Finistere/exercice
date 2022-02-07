@@ -12,6 +12,30 @@ fun main() {
     println(costs.joinToString(" "))
 }
 
+fun computeCostV2(n: Int, shortcuts: IntArray): IntArray {
+    val cost = IntArray(n) { -1 }
+    val q = ArrayDeque<Int>()
+    cost[0] = 0
+    q.add(0)
+    while (q.isNotEmpty()) {
+        val i = q.removeFirst()
+        if (cost[shortcuts[i] - 1] == -1) {
+            cost[shortcuts[i] - 1] = cost[i] + 1
+            q.add(shortcuts[i] - 1)
+        }
+        if (i + 1 < n && cost[i + 1] == -1) {
+            cost[i + 1] = cost[i] + 1
+            q.add(i + 1)
+        }
+        if (i - 1 >= 0 && cost[i - 1] == -1) {
+            cost[i - 1] = cost[i] + 1
+            q.add(i - 1)
+        }
+    }
+
+    return cost
+}
+
 fun computeCost(n: Int, shortcuts: IntArray): IntArray {
     val cost = IntArray(n) { n + 1 }
     var shortcutOrigin = 0
